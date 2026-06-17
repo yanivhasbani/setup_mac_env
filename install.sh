@@ -3,7 +3,6 @@
 DEVELOPER_FOLDER=~/Developer
 TEMP_DOWNLOAD_SETUP_FOLDER=~/Developer/setup_downloads
 USER_PASSWORD='!Q2w3e4r'
-INSTALL_XCODE_BETA=false
 
  typeset -A APP_NAME_TO_CASK_MAP
 APP_NAME_TO_CASK_MAP=(
@@ -93,25 +92,16 @@ _install_xcode() {
 		fi
 	fi
 
-	if [[ "$INSTALL_XCODE_BETA" == true ]]; then
-		brew install xcodesorg/made/xcodes
+	brew install mas
 
-		if [[ -d "/Applications/Xcode-beta.app" ]]; then
-			echo "Xcode Beta is already installed. Skipping."
-		else
-			echo "Installing latest Xcode Beta (this may take a while)..."
-			xcodes install --latest --release-type beta
-		fi
+	if [[ -d "/Applications/Xcode.app" ]]; then
+		echo "Xcode IDE is already installed. Skipping."
 	else
-		brew install mas
-
-		if [[ -d "/Applications/Xcode.app" ]]; then
-			echo "Xcode IDE is already installed. Skipping."
-		else
-			echo "Installing Xcode IDE from App Store (this may take a while)..."
-			mas install 497799835
-		fi
+		echo "Installing Xcode IDE from App Store (this may take a while)..."
+		mas install 497799835
 	fi
+
+	"$SCRIPT_DIR/xcode_switch.sh" --official
 }
 
 _setup_terminal_install_zsh_functionality() {
@@ -194,19 +184,5 @@ mac_env_setup() {
 	_setup_terminal
 	_install_apps
 }
-
-for arg in "$@"; do
-	case $arg in
-		--xcode-beta) INSTALL_XCODE_BETA=true ;;
-		-h|--help)
-			echo "Usage: ./install.sh [options]"
-			echo ""
-			echo "Options:"
-			echo "  --xcode-beta   Install the latest Xcode Beta instead of the stable Xcode IDE"
-			echo "  -h, --help     Show this help message and exit"
-			exit 0
-			;;
-	esac
-done
 
 mac_env_setup
