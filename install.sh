@@ -1,5 +1,6 @@
 #!/bin/zsh
 
+SCRIPT_DIR="${0:A:h}"
 DEVELOPER_FOLDER=~/Developer
 TEMP_DOWNLOAD_SETUP_FOLDER=~/Developer/setup_downloads
 USER_PASSWORD='!Q2w3e4r'
@@ -174,7 +175,7 @@ mac_env_setup() {
 
 	mkdir -p $DEVELOPER_FOLDER
 
-	local dotfiles_dir="${0:A:h}"
+	local dotfiles_dir="$SCRIPT_DIR/dotfiles"
 	if [[ ! -L "$HOME/.zshrc" ]]; then
 		ln -s "$dotfiles_dir/.zshrc" ~/.zshrc
 	else
