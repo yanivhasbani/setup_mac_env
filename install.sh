@@ -38,10 +38,24 @@ _brew_install_app_and_keep_to_dock() {
 }
 
 _setup_ssh_keys() {
+	local provider=${1:-github}
+	local host upload_url
+
+	case $provider in
+		github)
+			host="github.com"
+			upload_url="https://github.com/settings/ssh/new"
+			;;
+		gitlab)
+			host="gitlab.com"
+			upload_url="https://gitlab.com/-/profile/keys"
+			;;
+	esac
+
 	KEY_PATH=~/.ssh/id_rsa
 
-	if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
-		echo "GitHub SSH connection already verified. Skipping."
+	if ssh -T git@$host 2>&1 | grep -q "successfully authenticated"; then
+		echo "$provider SSH connection already verified. Skipping."
 		return
 	fi
 
@@ -55,15 +69,15 @@ _setup_ssh_keys() {
 	eval "$(ssh-agent -s)"
 	ssh-add "$KEY_PATH"
 
-	echo "\nAdd the following public key to GitHub (https://github.com/settings/ssh/new):"
+	echo "\nAdd the following public key to $provider ($upload_url):"
 	echo "----------------------------------------------------------------------"
 	cat "${KEY_PATH}.pub"
 	echo "----------------------------------------------------------------------"
-	read -r "?Press Enter once you have added the key to GitHub..."
+	read -r "?Press Enter once you have added the key to $provider..."
 
-	ssh -T git@github.com 2>&1 | grep -q "successfully authenticated" \
-		&& echo "GitHub SSH connection verified." \
-		|| echo "Warning: could not verify GitHub SSH connection. Check that the key was added correctly."
+	ssh -T git@$host 2>&1 | grep -q "successfully authenticated" \
+		&& echo "$provider SSH connection verified." \
+		|| echo "Warning: could not verify $provider SSH connection. Check that the key was added correctly."
 }
 
 _setup_homebrew() {
@@ -159,11 +173,22 @@ _setup_beyond_compare() {
 	echo "Beyond Compare set as default git difftool and mergetool."
 }
 
+_setup_github() {
+	brew install gh
+	gh auth login
+}
+
+_setup_gitlab() {
+	brew install glab
+	glab auth login
+}
+
 _install_apps() {
 	_brew_install_app_and_keep_to_dock sublime-text
 	_brew_install_app_and_keep_to_dock pycharm-ce
 	_brew_install_app_and_keep_to_dock iterm2
 	_setup_beyond_compare
+	_brew_install_app_and_keep_to_dock obsidian
 	brew install --cask claude-code
 	killall Dock
 }
@@ -171,7 +196,12 @@ _install_apps() {
 mac_env_setup() {
 	_setup_homebrew
 	_install_xcode
-	_setup_ssh_keys
+	_setup_ssh_keys $SOURCE_CONTROL
+
+	case $SOURCE_CONTROL in
+		gitlab) _setup_gitlab ;;
+		*)      _setup_github ;;
+	esac
 
 	mkdir -p $DEVELOPER_FOLDER
 
@@ -185,5 +215,30 @@ mac_env_setup() {
 	_setup_terminal
 	_install_apps
 }
+
+SOURCE_CONTROL="github"
+while [[ $# -gt 0 ]]; do
+	case $1 in
+		--source_control)
+			SOURCE_CONTROL="$2"
+			shift 2
+			;;
+		--help)
+			echo "Usage: install.sh [options]"
+			echo ""
+			echo "Options:"
+			echo "  --source_control <provider>   Source control provider to set up (default: github)"
+			echo "                                Supported: github, gitlab"
+			echo "  --help                        Show this help message"
+			exit 0
+			;;
+		*) shift ;;
+	esac
+done
+
+if [[ "$SOURCE_CONTROL" != "github" && "$SOURCE_CONTROL" != "gitlab" ]]; then
+	echo "Error: --source_control must be 'github' or 'gitlab'."
+	exit 1
+fi
 
 mac_env_setup
