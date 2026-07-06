@@ -114,9 +114,8 @@ _install_xcode() {
 	else
 		echo "Installing Xcode IDE from App Store (this may take a while)..."
 		mas install 497799835
+		"$SCRIPT_DIR/xcode_switch.sh" --official
 	fi
-
-	"$SCRIPT_DIR/xcode_switch.sh" --official
 }
 
 _setup_terminal_install_zsh_functionality() {
