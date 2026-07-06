@@ -19,14 +19,29 @@ APP_NAME_TO_CASK_MAP=(
 SUBL_PATH=$TEMP_DOWNLOAD_SETUP_FOLDER/SublimeText.dmg
 
 
+_brew_install_formula() {
+	local pkg=$1
+	if brew list --formula "$pkg" &>/dev/null 2>&1; then
+		if [[ "$FORCE_UPDATE" == "true" ]]; then
+			brew upgrade "$pkg"
+		else
+			echo "$pkg is already installed. Skipping."
+		fi
+	else
+		brew install "$pkg"
+	fi
+}
+
 _brew_install_app_and_keep_to_dock() {
 	CASK_NAME=$1
 	APP_NAME=${APP_NAME_TO_CASK_MAP[$CASK_NAME]}
 
-	if [[ -d "/Applications/$APP_NAME.app" ]]; then
-		echo "$APP_NAME is already installed (found in /Applications). Skipping."
-	elif brew list --cask "$CASK_NAME" &>/dev/null 2>&1; then
-		echo "$APP_NAME is already installed (registered with brew). Skipping."
+	if [[ -d "/Applications/$APP_NAME.app" ]] || brew list --cask "$CASK_NAME" &>/dev/null 2>&1; then
+		if [[ "$FORCE_UPDATE" == "true" ]]; then
+			brew upgrade --cask "$CASK_NAME"
+		else
+			echo "$APP_NAME is already installed. Skipping."
+		fi
 	else
 		brew install --cask $CASK_NAME
 	fi
@@ -108,7 +123,7 @@ _install_xcode() {
 		fi
 	fi
 
-	brew install mas
+	_brew_install_formula mas
 
 	if [[ -d "/Applications/Xcode.app" ]]; then
 		echo "Xcode IDE is already installed. Skipping."
@@ -120,7 +135,7 @@ _install_xcode() {
 }
 
 _setup_terminal_install_zsh_functionality() {
-	brew install $1
+	_brew_install_formula $1
 	local share_dir="$(brew --prefix)/share/$1"
 	local source_line
 	if [[ -f "$share_dir/$1.plugin.zsh" ]]; then
@@ -174,12 +189,12 @@ _setup_beyond_compare() {
 }
 
 _setup_github() {
-	brew install gh
+	_brew_install_formula gh
 	gh auth login
 }
 
 _setup_gitlab() {
-	brew install glab
+	_brew_install_formula glab
 	glab auth login
 }
 
@@ -189,7 +204,15 @@ _install_apps() {
 	_brew_install_app_and_keep_to_dock iterm2
 	_setup_beyond_compare
 	_brew_install_app_and_keep_to_dock obsidian
-	brew install --cask claude-code
+	if brew list --cask claude-code &>/dev/null 2>&1; then
+		if [[ "$FORCE_UPDATE" == "true" ]]; then
+			brew upgrade --cask claude-code
+		else
+			echo "Claude Code is already installed. Skipping."
+		fi
+	else
+		brew install --cask claude-code
+	fi
 	killall Dock
 }
 
@@ -217,11 +240,16 @@ mac_env_setup() {
 }
 
 SOURCE_CONTROL="github"
+FORCE_UPDATE=false
 while [[ $# -gt 0 ]]; do
 	case $1 in
 		--source_control)
 			SOURCE_CONTROL="$2"
 			shift 2
+			;;
+		--force_update)
+			FORCE_UPDATE=true
+			shift
 			;;
 		--help)
 			echo "Usage: install.sh [options]"
@@ -229,6 +257,7 @@ while [[ $# -gt 0 ]]; do
 			echo "Options:"
 			echo "  --source_control <provider>   Source control provider to set up (default: github)"
 			echo "                                Supported: github, gitlab"
+			echo "  --force_update                Upgrade already-installed Homebrew packages (default: skip)"
 			echo "  --help                        Show this help message"
 			exit 0
 			;;
