@@ -1,6 +1,7 @@
 #!/bin/zsh
 
 SCRIPT_DIR="${0:A:h}"
+BIN_DIR="$HOME/.bin"
 DEVELOPER_FOLDER=~/Developer
 TEMP_DOWNLOAD_SETUP_FOLDER=~/Developer/setup_downloads
 USER_PASSWORD='!Q2w3e4r'
@@ -13,10 +14,6 @@ APP_NAME_TO_CASK_MAP=(
 	[beyond-compare]="Beyond Compare"
 	[obsidian]="Obsidian"
 )
-
-
-# App paths
-SUBL_PATH=$TEMP_DOWNLOAD_SETUP_FOLDER/SublimeText.dmg
 
 
 _brew_install_formula() {
@@ -198,6 +195,42 @@ _setup_gitlab() {
 	glab auth login
 }
 
+# Usage: link_app_cli <link_name> <AppName> [<binary_name>]
+#   link_name   — name of the command placed in BIN_DIR
+#   AppName     — .app bundle name (without .app)
+#   binary_name — binary inside Contents/MacOS (defaults to link_name)
+link_app_cli() {
+	local link_name="$1"
+	local app_name="$2"
+	local binary_name="${3:-$link_name}"
+
+	if [[ -e "$BIN_DIR/$link_name" ]]; then
+		return 0
+	fi
+
+	local cli_binary=""
+	for candidate in \
+		"/Applications/${app_name}.app/Contents/MacOS/${binary_name}" \
+		"$HOME/Applications/${app_name}.app/Contents/MacOS/${binary_name}"; do
+		if [[ -f "$candidate" ]]; then
+			cli_binary="$candidate"
+			break
+		fi
+	done
+
+	if [[ -n "$cli_binary" ]]; then
+		ln -s "$cli_binary" "$BIN_DIR/$link_name"
+		echo "Created symlink $BIN_DIR/$link_name -> $cli_binary"
+	else
+		echo "Warning: ${app_name}.app not found. Add '$link_name' to $BIN_DIR manually."
+	fi
+}
+
+_link_app_clis() {
+	mkdir -p "$BIN_DIR"
+	link_app_cli pycharm "PyCharm CE"
+}
+
 _install_apps() {
 	_brew_install_app_and_keep_to_dock sublime-text
 	_brew_install_app_and_keep_to_dock pycharm-ce
@@ -237,6 +270,7 @@ mac_env_setup() {
 
 	_setup_terminal
 	_install_apps
+	_link_app_clis
 }
 
 SOURCE_CONTROL="github"
