@@ -11,6 +11,7 @@ APP_NAME_TO_CASK_MAP=(
 	[pycharm-ce]="PyCharm CE"
 	[iterm2]="iTerm"
 	[beyond-compare]="Beyond Compare"
+	[obsidian]="Obsidian"
 )
 
 
