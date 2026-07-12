@@ -13,6 +13,7 @@ APP_NAME_TO_CASK_MAP=(
 	[iterm2]="iTerm"
 	[beyond-compare]="Beyond Compare"
 	[obsidian]="Obsidian"
+	[zoom]="Zoom"
 )
 
 
