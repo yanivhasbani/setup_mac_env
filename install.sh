@@ -14,6 +14,7 @@ APP_NAME_TO_CASK_MAP=(
 	[beyond-compare]="Beyond Compare"
 	[obsidian]="Obsidian"
 	[zoom]="Zoom"
+	[docker]="Docker"
 )
 
 
@@ -104,6 +105,11 @@ _setup_homebrew() {
 	echo >> /Users/office.yh.mac/.zprofile
     echo 'eval "$(/opt/homebrew/bin/brew shellenv zsh)"' >> /Users/office.yh.mac/.zprofile
 	eval "$(/opt/homebrew/bin/brew shellenv zsh)"
+}
+
+_install_ios_development_tools() {
+  _install_xcode
+  _brew_install_formula cocoapods
 }
 
 _install_xcode() {
@@ -238,6 +244,7 @@ _install_apps() {
 	_brew_install_app_and_keep_to_dock iterm2
 	_setup_beyond_compare
 	_brew_install_app_and_keep_to_dock obsidian
+	_brew_install_app_and_keep_to_dock docker
 	if brew list --cask claude-code &>/dev/null 2>&1; then
 		if [[ "$FORCE_UPDATE" == "true" ]]; then
 			brew upgrade --cask claude-code
@@ -252,7 +259,7 @@ _install_apps() {
 
 mac_env_setup() {
 	_setup_homebrew
-	_install_xcode
+	_install_ios_development_tools
 	_setup_ssh_keys $SOURCE_CONTROL
 
 	case $SOURCE_CONTROL in
