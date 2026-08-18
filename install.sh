@@ -15,6 +15,7 @@ APP_NAME_TO_CASK_MAP=(
 	[obsidian]="Obsidian"
 	[zoom]="Zoom"
 	[docker]="Docker"
+	[postman]="Postman"
 )
 
 
@@ -245,6 +246,7 @@ _install_apps() {
 	_setup_beyond_compare
 	_brew_install_app_and_keep_to_dock obsidian
 	_brew_install_app_and_keep_to_dock docker
+	_brew_install_app_and_keep_to_dock postman
 	if brew list --cask claude-code &>/dev/null 2>&1; then
 		if [[ "$FORCE_UPDATE" == "true" ]]; then
 			brew upgrade --cask claude-code
