@@ -17,6 +17,7 @@ APP_NAME_TO_CASK_MAP=(
 	[docker]="Docker"
 	[postman]="Postman"
 	[visual-studio-code]="Visual Studio Code"
+	[grandperspective]="GrandPerspective"
 )
 
 
@@ -249,6 +250,7 @@ _install_apps() {
 	_brew_install_app_and_keep_to_dock docker
 	_brew_install_app_and_keep_to_dock postman
 	_brew_install_app_and_keep_to_dock visual-studio-code
+	_brew_install_app_and_keep_to_dock grandperspective
 	if brew list --cask claude-code &>/dev/null 2>&1; then
 		if [[ "$FORCE_UPDATE" == "true" ]]; then
 			brew upgrade --cask claude-code
