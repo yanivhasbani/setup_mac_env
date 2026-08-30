@@ -9,7 +9,7 @@ USER_PASSWORD='!Q2w3e4r'
  typeset -A APP_NAME_TO_CASK_MAP
 APP_NAME_TO_CASK_MAP=(
 	[sublime-text]="Sublime Text"
-	[pycharm-ce]="PyCharm CE"
+	[pycharm]="PyCharm"
 	[iterm2]="iTerm"
 	[beyond-compare]="Beyond Compare"
 	[obsidian]="Obsidian"
@@ -238,12 +238,12 @@ link_app_cli() {
 
 _link_app_clis() {
 	mkdir -p "$BIN_DIR"
-	link_app_cli pycharm "PyCharm CE"
+	link_app_cli pycharm "PyCharm"
 }
 
 _install_apps() {
 	_brew_install_app_and_keep_to_dock sublime-text
-	_brew_install_app_and_keep_to_dock pycharm-ce
+	_brew_install_app_and_keep_to_dock pycharm
 	_brew_install_app_and_keep_to_dock iterm2
 	_setup_beyond_compare
 	_brew_install_app_and_keep_to_dock obsidian
