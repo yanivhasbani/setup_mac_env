@@ -36,25 +36,56 @@ _brew_install_formula() {
 	fi
 }
 
-_brew_install_app_and_keep_to_dock() {
-	CASK_NAME=$1
-	APP_NAME=${APP_NAME_TO_CASK_MAP[$CASK_NAME]}
+_brew_cask_exists() {
+  local CASK_NAME="$1"
+  brew list --cask "$CASK_NAME" &>/dev/null 2>&1
+}
 
-	if [[ -d "/Applications/$APP_NAME.app" ]] || brew list --cask "$CASK_NAME" &>/dev/null 2>&1; then
-		if [[ "$FORCE_UPDATE" == "true" ]]; then
-			brew upgrade --cask "$CASK_NAME"
-		else
-			echo "$APP_NAME is already installed. Skipping."
-		fi
-	else
-		brew install --cask $CASK_NAME
-	fi
+_brew_install_cli() {
+  local CASK_NAME="$1"
 
-	if defaults read com.apple.dock persistent-apps 2>/dev/null | grep -q "$APP_NAME"; then
-		echo "$APP_NAME is already in the Dock. Skipping."
-	else
-		defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/$APP_NAME.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"
-	fi
+  if _brew_cask_exists "$CASK_NAME"; then
+    if [[ "$FORCE_UPDATE" == "true" ]]; then
+      brew upgrade --cask "$CASK_NAME"
+    else
+      echo "$CASK_NAME is already installed. Skipping."
+    fi
+  else
+    brew install --cask "$CASK_NAME"
+  fi
+}
+
+_brew_install_app_and_keep_in_dock() {
+  local CASK_NAME="$1"
+  local APP_NAME=${APP_NAME_TO_CASK_MAP[$CASK_NAME]}
+
+  if [[ -d "/Applications/$APP_NAME.app" ]] || _brew_cask_exists "$CASK_NAME"; then
+    if [[ "$FORCE_UPDATE" == "true" ]]; then
+      brew upgrade --cask "$CASK_NAME"
+    else
+      echo "$APP_NAME is already installed. Skipping."
+    fi
+
+    return
+  fi
+
+  brew install --cask "$CASK_NAME"
+  if defaults read com.apple.dock persistent-apps 2>/dev/null | grep -q "$APP_NAME"; then
+    echo "$APP_NAME is already in the Dock. Skipping."
+  else
+    defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/$APP_NAME.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"
+  fi
+}
+
+_brew_install_cask() {
+  local CASK_NAME=$1
+	local CLI_TOOL=$2
+
+  if [[ "$CLI_TOOL" != "true" ]]; then
+    _brew_install_app_and_keep_in_dock "$CASK_NAME"
+  else
+    _brew_install_cli "$CASK_NAME"
+  fi
 }
 
 _setup_ssh_keys() {
@@ -176,7 +207,7 @@ _setup_terminal() {
 }
 
 _setup_beyond_compare() {
-	_brew_install_app_and_keep_to_dock beyond-compare
+	_brew_install_cask beyond-compare
 
 	local bc_cli="/Applications/Beyond Compare.app/Contents/MacOS/bcomp"
 	local bc_link="$(brew --prefix)/bin/bcomp"
@@ -244,27 +275,19 @@ _link_app_clis() {
 }
 
 _install_apps() {
-	_brew_install_app_and_keep_to_dock sublime-text
-	_brew_install_app_and_keep_to_dock pycharm
-	_brew_install_app_and_keep_to_dock iterm2
+	_brew_install_cask sublime-text
+	_brew_install_cask pycharm
+	_brew_install_cask iterm2
 	_setup_beyond_compare
-	_brew_install_app_and_keep_to_dock obsidian
-	_brew_install_app_and_keep_to_dock docker
-	_brew_install_app_and_keep_to_dock postman
-	_brew_install_app_and_keep_to_dock visual-studio-code
-	_brew_install_app_and_keep_to_dock grandperspective
-	_brew_install_app_and_keep_to_dock chatgpt
-	_brew_install_app_and_keep_to_dock codex
+	_brew_install_cask obsidian
+	_brew_install_cask docker
+	_brew_install_cask postman
+	_brew_install_cask visual-studio-code
+	_brew_install_cask grandperspective
+	_brew_install_cask chatgpt
+	_brew_install_cask codex "true"
+	_brew_install_cask "claude-code@latest" "true"
 
-	if brew list --cask claude-code@latest &>/dev/null 2>&1; then
-		if [[ "$FORCE_UPDATE" == "true" ]]; then
-			brew upgrade --cask claude-code@latest
-		else
-			echo "Claude Code is already installed. Skipping."
-		fi
-	else
-		brew install --cask claude-code@latest
-	fi
 	killall Dock
 }
 
