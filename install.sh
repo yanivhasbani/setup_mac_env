@@ -18,6 +18,8 @@ APP_NAME_TO_CASK_MAP=(
 	[postman]="Postman"
 	[visual-studio-code]="Visual Studio Code"
 	[grandperspective]="GrandPerspective"
+	[codex]="Codex"
+	[chatgpt]="ChatGPT"
 )
 
 
@@ -251,14 +253,17 @@ _install_apps() {
 	_brew_install_app_and_keep_to_dock postman
 	_brew_install_app_and_keep_to_dock visual-studio-code
 	_brew_install_app_and_keep_to_dock grandperspective
-	if brew list --cask claude-code &>/dev/null 2>&1; then
+	_brew_install_app_and_keep_to_dock chatgpt
+	_brew_install_app_and_keep_to_dock codex
+
+	if brew list --cask claude-code@latest &>/dev/null 2>&1; then
 		if [[ "$FORCE_UPDATE" == "true" ]]; then
-			brew upgrade --cask claude-code
+			brew upgrade --cask claude-code@latest
 		else
 			echo "Claude Code is already installed. Skipping."
 		fi
 	else
-		brew install --cask claude-code
+		brew install --cask claude-code@latest
 	fi
 	killall Dock
 }
